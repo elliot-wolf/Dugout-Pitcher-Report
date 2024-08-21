@@ -1,0 +1,236 @@
+---
+title: "Dugout Pitcher Report"
+output: pdf_document
+date: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+
+dat <- read.csv("sample.csv")
+
+```
+
+
+```{r, include = FALSE}
+
+# Editing pitch types
+dat1 <- dat %>% 
+  mutate(PitchType = case_when(InducedVertBreak < 0 ~ "Slider",
+                               RelSpeed > 88 ~ "Fastball",
+                              TRUE ~ "Changeup"))
+
+ggplot(dat1, aes(x = HorzBreak, y = InducedVertBreak, 
+                 color = PitchType)) +
+  geom_point(size = 3) +
+  geom_hline(yintercept = 0, color='black') +
+  geom_vline(xintercept = 0, color='black') +
+  xlim(-30,30) +
+  ylim(-30,30) +
+  labs(
+    title = "Horizontal vs. Vertical Break",
+    x = "Horizontal Break (in.)",
+    y = "Vertical Break (in.)",
+    color = "Pitch Type"
+  )
+
+```
+
+### Pitch Usage: LHH
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+PitchTypes <- dat1 %>%
+  filter(BatterSide == "Left") %>% 
+  group_by(PitchType) %>%
+  summarize(count = n(),
+            Strike_count = sum(PitchCall %in% c("StrikeCalled", "StrikeSwinging",
+                                                "InPlay", "FoulBallNotFieldable",
+                                                "FoulBallFieldable", "Undefined"))) %>% 
+  mutate(Usage = paste(round((count / sum(count) * 100), 0), "%"),
+         Strike_pct = paste(round((Strike_count / count * 100), 0), "%"))
+
+PitchTypes %>%
+  select(PitchType, Usage, Strike_pct) %>%
+  kable(format = "latex", digits = 1, col.names = c("Pitch Type",
+                                                    "Usage", "Strike %")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, latex_options = "hold_position")
+
+```
+
+
+### Pitch Usage: RHH
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+PitchTypes <- dat1 %>%
+  filter(BatterSide == "Right") %>% 
+  group_by(PitchType) %>%
+  summarize(count = n(),
+            Strike_count = sum(PitchCall %in% c("StrikeCalled", "StrikeSwinging",
+                                                "InPlay", "FoulBallNotFieldable",
+                                                "FoulBallFieldable", "Undefined"))) %>% 
+  mutate(Usage = paste(round((count / sum(count) * 100), 0), "%"),
+         Strike_pct = paste(round((Strike_count / count * 100), 0), "%"))
+
+PitchTypes %>%
+  select(PitchType, Usage, Strike_pct) %>%
+  kable(format = "latex", digits = 1, col.names = c("Pitch Type",
+                                                    "Usage", "Strike %")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, latex_options = "hold_position")
+
+```
+
+
+### 2 Strike Pitch Usage: LHH
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+PitchTypes <- dat1 %>%
+  filter(BatterSide == "Left",
+         Strikes == 2) %>% 
+  group_by(PitchType) %>%
+  summarize(count = n(),
+            Strike_count = sum(PitchCall %in% c("StrikeCalled", "StrikeSwinging",
+                                                "InPlay", "FoulBallNotFieldable",
+                                                "FoulBallFieldable", "Undefined"))) %>% 
+  mutate(Usage = paste(round((count / sum(count) * 100), 0), "%"),
+         Strike_pct = paste(round((Strike_count / count * 100), 0), "%"))
+
+PitchTypes %>%
+  select(PitchType, Usage) %>%
+  kable(format = "latex", digits = 1, col.names = c("Pitch Type",
+                                                    "Usage")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, latex_options = "hold_position")
+
+```
+
+### 2 Strike Pitch Usage: RHH
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+PitchTypes <- dat1 %>%
+  filter(BatterSide == "Right",
+         Strikes == 2) %>% 
+  group_by(PitchType) %>%
+  summarize(count = n(),
+            Strike_count = sum(PitchCall %in% c("StrikeCalled", "StrikeSwinging",
+                                                "InPlay", "FoulBallNotFieldable",
+                                                "FoulBallFieldable", "Undefined"))) %>% 
+  mutate(Usage = paste(round((count / sum(count) * 100), 0), "%"),
+         Strike_pct = paste(round((Strike_count / count * 100), 0), "%"))
+
+PitchTypes %>%
+  select(PitchType, Usage) %>%
+  kable(format = "latex", digits = 1, col.names = c("Pitch Type",
+                                                    "Usage")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, latex_options = "hold_position")
+
+```
+
+### First Pitch: LHH
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+PitchTypes <- dat1 %>%
+  filter(BatterSide == "Left",
+         Strikes == 0,
+         Balls == 0) %>% 
+  group_by(PitchType) %>%
+  summarize(count = n(),
+            Strike_count = sum(PitchCall %in% c("StrikeCalled", "StrikeSwinging",
+                                                "InPlay", "FoulBallNotFieldable",
+                                                "FoulBallFieldable", "Undefined"))) %>% 
+  mutate(Usage = paste(round((count / sum(count) * 100), 0), "%"),
+         Strike_pct = paste(round((Strike_count / count * 100), 0), "%"))
+
+PitchTypes %>%
+  select(PitchType, Usage) %>%
+  kable(format = "latex", digits = 1, col.names = c("Pitch Type",
+                                                    "Usage")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, latex_options = "hold_position")
+
+```
+
+### First Pitch: RHH
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+PitchTypes <- dat1 %>%
+  filter(BatterSide == "Right",
+         Strikes == 0,
+         Balls == 0) %>% 
+  group_by(PitchType) %>%
+  summarize(count = n(),
+            Strike_count = sum(PitchCall %in% c("StrikeCalled", "StrikeSwinging",
+                                                "InPlay", "FoulBallNotFieldable",
+                                                "FoulBallFieldable", "Undefined"))) %>% 
+  mutate(Usage = paste(round((count / sum(count) * 100), 0), "%"),
+         Strike_pct = paste(round((Strike_count / count * 100), 0), "%"))
+
+PitchTypes %>%
+  select(PitchType, Usage) %>%
+  kable(format = "latex", digits = 1, col.names = c("Pitch Type",
+                                                    "Usage")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, latex_options = "hold_position")
+
+```
+
+### Pitch Summary
+
+```{r echo=FALSE}
+
+PitchTypes <- dat1 %>%
+  group_by(PitchType) %>%
+  summarize(Velo_Range = paste(round(min(RelSpeed), 0), round(max(RelSpeed), 0), sep = ' - '),
+            Avg_Velo = mean(RelSpeed),
+            Avg_Spin = round(mean(SpinRate), 0),
+            count = n(),
+            Strike_count = sum(PitchCall %in% c("StrikeCalled", "StrikeSwinging",
+                                                "InPlay", "FoulBallNotFieldable",
+                                                "FoulBallFieldable", "Undefined"))) %>% 
+  mutate(Usage = paste(round((count / sum(count) * 100), 0), "%"),
+         Strike_pct = paste(round((Strike_count / count * 100), 0), "%"))
+
+PitchTypes %>%
+  select(PitchType, Velo_Range, Avg_Velo, Avg_Spin, Usage, Strike_pct) %>%
+  kable(format = "latex", digits = 1, col.names = c("Pitch Type", "Velocity Range", "Avg Velocity", "Avg Spin",
+                                                    "Usage", "Strike %")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, latex_options = "hold_position")
+
+```
+
+
+### Pitch Movement
+
+```{r echo=FALSE, fig.height=4, fig.width=6}
+
+ggplot(dat1, aes(x = HorzBreak, y = InducedVertBreak, 
+                 color = PitchType)) +
+  geom_point(size = 3, alpha = 0.6, pch = 19) +
+  geom_hline(yintercept = 0, color='black') +
+  geom_vline(xintercept = 0, color='black') +
+  xlim(-30,30) +
+  ylim(-30,30) +
+  labs(
+    title = "Horizontal vs. Vertical Break",
+    x = "Horizontal Break (in.)",
+    y = "Vertical Break (in.)",
+    color = "Pitch Type"
+  )
+
+```
+
+
+
+
+
